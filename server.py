@@ -16,6 +16,29 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/':
             self.path = "index.html"
         
+        elif self.path.startswith("/greet"):
+            query_components = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            name = query_components.get("name", ["Stranger"])[0]
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            response = f"""
+            <!DOCTYPE html>
+            <html>
+                <body>
+                    <h1>Hello, {name}!</h1>
+                    <a href="/">Go back</a>
+                </body>
+            </html>
+            """
+            self.wfile.write(response.encode("utf-8"))
+            print(f"Greeted {name}")
+            return
+        
+        else:
+            self.send_error(404, "Page Not found")
+            return
+        
         # Call the parent class method that will handle the GET request
         return super().do_GET()
     
@@ -62,4 +85,4 @@ with socketserver.TCPServer(("", PORT), MyRequestHandler) as httpd:
     except KeyboardInterrupt:
         # If the user presses Ctrl+C, then stop the server
         print("\nShutting down the server...")
-        httpd.server_close()
+        httpd.shutdown()
