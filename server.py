@@ -1,5 +1,6 @@
 import http.server
 import socketserver
+import urllib.parse
 
 # Define the port's number where the server will listen
 PORT = 8000
@@ -9,16 +10,56 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     # Define the method that will handle the GET requests
     def do_GET(self) -> None:
-        
+        print(f"Received GET request for {self.path}")
+
         # If the path is '/', then set the path to 'index.html'
         if self.path == '/':
-            self.path == "index.html"
+            self.path = "index.html"
         
         # Call the parent class method that will handle the GET request
-        return http.server.SimpleHTTPRequestHandler.do_GET(self)
+        return super().do_GET()
+    
+    def do_POST(self) -> None:
+        print(f"Received POST request")
+
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+        print(f"Raw POST data: {post_data}")
+
+        post_data = urllib.parse.parse_qs(post_data.decode("utf-8"))
+        print(f"Parsed POST data: {post_data}")
+
+        # Extracting data from the form
+        name = post_data.get("name", [''])[0]
+        print(f"Name extracted from the form: {name}")
+
+        # Create a response
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        response = f"""
+        <!DOCTYPE html>
+        <html>
+            <body>
+                <h1>Hello, {name}!</h1>
+                <a href="/">Go back</a>
+            </body>
+        </html>
+        """
+        self.wfile.write(response.encode("utf-8"))
+        print("Response sent to client")
 
 # Create a TCP server that will listen on the specific port
 with socketserver.TCPServer(("", PORT), MyRequestHandler) as httpd:
     print(f"Server started on port {str(PORT)}")
-    # Start the server
-    httpd.serve_forever()
+    
+    # Try to keep the server running
+
+    try:
+        # Keep the server running
+        httpd.serve_forever()
+
+    except KeyboardInterrupt:
+        # If the user presses Ctrl+C, then stop the server
+        print("\nShutting down the server...")
+        httpd.server_close()

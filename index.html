@@ -9,5 +9,11 @@
     <body>
         <h1>Welcome to my simple web server</h1>
         <p>This is a custom HTML page served by my Python web server</p>
+
+        <form action="/" method="post" onsubmit="console.log('Form submitted as POST');">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" name="name">
+            <input type="submit" value="Submit">
+        </form>
     </body>
-</html>
+</html> 
