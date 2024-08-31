@@ -1,6 +1,7 @@
 import http.server
 import socketserver
 import urllib.parse
+import os
 
 # Define the port's number where the server will listen
 PORT = 8000
@@ -35,6 +36,14 @@ class MyRequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Greeted {name}")
             return
         
+        elif self.path.startswith("/static/"):
+            if os.path.exists(self.path[1:]):
+                return super().do_GET()
+
+            else:
+                self.send_error(404, "File Not found")
+                return
+
         else:
             self.send_error(404, "Page Not found")
             return
